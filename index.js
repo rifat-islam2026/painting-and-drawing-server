@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const cors = require('cors');
 const port = process.env.PORT || 5000;
@@ -26,23 +26,37 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
 
-        const productCollection = client.db("productDB").collection("product");
+        const craftItemsCollection = client.db("craftItemDB").collection("craftItem");
          
-        app.post('/product', async (req, res) => {
-            const product = req.body;
-            console.log(product);
-            const result = await productCollection.insertOne(product);
+        app.post('/craftItems', async (req, res) => {
+            const craftItem = req.body;
+            console.log(craftItem);
+            const result = await craftItemsCollection.insertOne(craftItem);
             res.send(result);
         })
 
-        app.get('/product', async (req, res) => {
-            const cursor = productCollection.find();
+        app.get('/craftItems', async (req, res) => {
+            const cursor = craftItemsCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
 
+        app.get('/craftItems/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await craftItemsCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.get('/items/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { 'user.email': email };
+            const result = await craftItemsCollection.find(query).toArray();
+            res.send(result);
+        })
+
         // Send a ping to confirm a successful connection
-        // await client.db("admin").command({ ping: 1 });
+        await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
